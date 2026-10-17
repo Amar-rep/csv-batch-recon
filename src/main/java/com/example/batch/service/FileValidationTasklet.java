@@ -16,17 +16,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.unit.DataSize;
 
-@Component
-
 public class FileValidationTasklet implements Tasklet {
 
-	private static final String HEADER = "employee_id,firstName,lastName,email,salary";
-
-	@Value("${batch.file.path}")
+	private static final String HEADER = "transaction_id,account_number,transaction_date,amount,currency,transaction_type,description";
+	
 	private String filePath;
 
-	@Value("${csv.max-file-size}")
+
 	private DataSize maxFileSize;
+	
+	  public FileValidationTasklet(String filePath, DataSize maxFileSize) {
+	        this.filePath = filePath;
+	        this.maxFileSize = maxFileSize;
+	    }
+	
+	
+	
+	
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {

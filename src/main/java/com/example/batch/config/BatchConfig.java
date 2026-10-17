@@ -15,47 +15,97 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.example.batch.model.UserProcessingResult;
-import com.example.batch.model.UserRecord;
+import com.example.batch.dto.ReconciliationResult;
+import com.example.batch.dto.TransactionData;
+import com.example.batch.dto.TransactionProcessingResult;
+import com.example.batch.listener.ReconciliationJobListener;
 import com.example.batch.service.FileValidationTasklet;
 
 @Configuration
 public class BatchConfig {
 
 	@Bean
-	public Step validateFileStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-			FileValidationTasklet fileValidationTasklet) {
-		return new StepBuilder("validateFileStep", jobRepository)
-				.tasklet(fileValidationTasklet, transactionManager)
-				.allowStartIfComplete(true)
-				.build();
-	}
+	public Step validateInputFileStep(
+	        JobRepository jobRepository,
+	        PlatformTransactionManager transactionManager,
+	        @Qualifier("file1ValidationTasklet")
+	        FileValidationTasklet tasklet) {
 
+	    return new StepBuilder("validateInputFileStep", jobRepository)
+	            .tasklet(tasklet, transactionManager)
+	            .allowStartIfComplete(true)
+	            .build();
+	} 
+	  @Bean
+	  public Step validateFile2Step(
+	          JobRepository jobRepository,
+	          PlatformTransactionManager transactionManager,
+	          @Qualifier("file2ValidationTasklet")
+	          FileValidationTasklet tasklet) {
+
+	      return new StepBuilder("validateFile2Step", jobRepository)
+	              .tasklet(tasklet, transactionManager)
+	              .allowStartIfComplete(true)
+	              .build();
+	  }
+	
 	@Bean
-	public Step importUserStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-			@Qualifier("csvReader") FlatFileItemReader<UserRecord> csvReader,
-			@Qualifier("asyncUserProcessor") AsyncItemProcessor<UserRecord, UserProcessingResult> asyncUserProcessor,
-			@Qualifier("asyncUserWriter") AsyncItemWriter<UserProcessingResult> asyncUserWriter) {
-		return new StepBuilder("importUserStep", jobRepository)
-				.<UserRecord, Future<UserProcessingResult>>chunk(10,transactionManager)
+	public Step importTransactionsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+			@Qualifier("file1Reader") FlatFileItemReader<TransactionData> csvReader,
+			@Qualifier("asyncTransactionProcessor") AsyncItemProcessor<TransactionData, TransactionProcessingResult> asyncTransactionProcessor,
+			@Qualifier("asyncTransactionWriter") AsyncItemWriter<TransactionProcessingResult> asyncTransactionWriter) {
+		return new StepBuilder("importTransactionsStep", jobRepository)
+				.<TransactionData, Future<TransactionProcessingResult>>chunk(1000,transactionManager)
 				.reader(csvReader)
-				.processor(asyncUserProcessor)
-				.writer(asyncUserWriter)
+				.processor(asyncTransactionProcessor)
+				.writer(asyncTransactionWriter)
 				.build();
 		
 	}
+	
+	@Bean
+	public Step reconcileTransactionsStep(
+	        JobRepository jobRepository,
+	        PlatformTransactionManager transactionManager,
+	        @Qualifier("file2Reader")
+	        FlatFileItemReader<TransactionData> csvReader,
+	        @Qualifier("asyncReconciliationProcessor")
+	        AsyncItemProcessor<TransactionData, ReconciliationResult> asyncReconciliationProcessor,
+	        @Qualifier("asyncReconciliationWriter")
+	        AsyncItemWriter<ReconciliationResult> asyncReconciliationWriter) {
+
+	    return new StepBuilder("reconcileTransactionsStep", jobRepository)
+	            .<TransactionData, Future<ReconciliationResult>>chunk(
+	                    1000, transactionManager)
+	            .reader(csvReader)
+	            .processor(asyncReconciliationProcessor)
+	            .writer(asyncReconciliationWriter)
+	            .build();
+	}
 
 	@Bean
-	public Job importUserJob(JobRepository jobRepository,
-			@Qualifier("validateFileStep") Step validateFileStep,
-			@Qualifier("importUserStep") Step importUserStep) {
-		return new JobBuilder("importUserJob", jobRepository)
-				.start(validateFileStep)
-				.on("VALIDATION_FAILED").fail()
-				.from(validateFileStep)
-				.on("COMPLETED").to(importUserStep)
-				.end()
-				.build();
+	public Job TransactionReconJob(
+	        JobRepository jobRepository,
+	        ReconciliationJobListener listener,
+	        @Qualifier("validateInputFileStep") Step validateInputFileStep,
+	        @Qualifier("importTransactionsStep") Step importTransactionsStep,
+	        @Qualifier("validateFile2Step") Step validateFile2Step,
+	        @Qualifier("reconcileTransactionsStep") Step reconcileTransactionsStep) {
+
+	    return new JobBuilder("TransactionReconJob", jobRepository)
+	    		.listener(listener)
+	            .start(validateInputFileStep)
+	                .on("VALIDATION_FAILED").fail()
+	            .from(validateInputFileStep)
+	                .on("COMPLETED").to(importTransactionsStep)
+	            .from(importTransactionsStep)
+	                .on("COMPLETED").to(validateFile2Step)
+	            .from(validateFile2Step)
+	                .on("VALIDATION_FAILED").fail()
+	            .from(validateFile2Step)
+	                .on("COMPLETED").to(reconcileTransactionsStep)
+	            .end()
+	            .build();
 	}
 
 }

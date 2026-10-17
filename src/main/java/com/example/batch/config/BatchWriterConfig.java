@@ -7,36 +7,26 @@ import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.example.batch.model.FailedUserRecord;
-import com.example.batch.model.UserRecord;
+import com.example.batch.model.Transaction;
 
 @Configuration
 public class BatchWriterConfig {
 
-	private static final String INSERT_USER_STRING = """
-			INSERT INTO user_records
-			(employee_id, first_name, last_name, email, salary)
+	private static final String INSERT_TRANSACTION_SQL = """
+			INSERT INTO transactions
+			    (run_id, transaction_id, account_number, transaction_date,
+			     amount, currency, transaction_type, description,
+			     row_number, created_at, updated_at)
 			VALUES
-			   (:employee_id, :firstName, :lastName, :email, :salary)
-			ON CONFLICT DO NOTHING
-			""";
-	private static final String INSERT_FAILED_STRING = """
-			INSERT INTO failed_user_record
-			   (job_execution_id, first_name, last_name, email, error_message, created_at)
-			VALUES
-			   (:jobExecutionId, :firstName, :lastName, :email, :errorMessage, :createdAt)
+			    (:runId, :transactionId, :accountNumber, :transactionDate,
+			     :amount, :currency, :transactionType, :description,
+			     :rowNumber, :createdAt, :updatedAt)
 			""";
 
 	@Bean
-	public JdbcBatchItemWriter<UserRecord> userWriter(DataSource dataSource) {
-		return new JdbcBatchItemWriterBuilder<UserRecord>().dataSource(dataSource).sql(INSERT_USER_STRING).beanMapped()
-				.assertUpdates(false).build();
-	}
-
-	@Bean
-	public JdbcBatchItemWriter<FailedUserRecord> failedUserWriter(DataSource dataSource) {
-		return new JdbcBatchItemWriterBuilder<FailedUserRecord>().dataSource(dataSource).sql(INSERT_FAILED_STRING)
-				.beanMapped().build();
+	public JdbcBatchItemWriter<Transaction> transactionBatchItemWriter(DataSource dataSource) {
+		return new JdbcBatchItemWriterBuilder<Transaction>().dataSource(dataSource).sql(INSERT_TRANSACTION_SQL).beanMapped()
+				.assertUpdates(true).build();
 	}
 
 }
