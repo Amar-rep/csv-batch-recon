@@ -10,7 +10,7 @@ The processor filters rows with an invalid email or ZIP code and uppercases vali
 
 ## Requirements
 
-- Java 21
+- Java 25 (LTS)
 - Maven 3.9+, or use the included Maven wrapper
 - PostgreSQL with a `weather-sec` database
 

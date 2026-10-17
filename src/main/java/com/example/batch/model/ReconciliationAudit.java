@@ -13,14 +13,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(
-    name = "reconciliation_audit",
-    uniqueConstraints = @UniqueConstraint(name = "uk_reconciliation_audit_run_id", columnNames = "run_id")
-)
+@Table(name = "reconciliation_audit", uniqueConstraints = @UniqueConstraint(name = "uk_reconciliation_audit_run_id", columnNames = "run_id"))
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ReconciliationAudit {
 
     @Id
@@ -36,15 +32,13 @@ public class ReconciliationAudit {
     @Column(name = "mismatched_records", nullable = false)
     private Long mismatchedRecords = 0L;
 
-   @Column(name = "duplicate_records", nullable = false)
+    @Column(name = "duplicate_records", nullable = false)
     private Long duplicateRecords = 0L;
 
     @Column(name = "invalid_records", nullable = false)
     private Long invalidRecords = 0L;
-   
-    @Column(name="missing_from_first",nullable = false)
-    private Long missing_from_first=0L;
-    
 
-   
+    @Column(name = "missing_from_first", nullable = false)
+    private Long missing_from_first = 0L;
+
 }
