@@ -32,39 +32,30 @@ public class ReconciliationWriterService {
 
 		List<ReconciliationResult> csvResults = new ArrayList<>();
 		List<Transaction> transactionsToUpdate = new ArrayList<>();
-
 		long matchedCount = 0L;
 		long mismatchedCount = 0L;
 		long invalidCount = 0L;
 		long missingFromFirst = 0L;
-
 		for (ReconciliationResult result : chunkList) {
 
 			switch (result.getStatus()) {
-
 			case INVALID -> {
 				invalidCount++;
 				csvResults.add(result);
 			}
-
 			case MISSING -> {
 				missingFromFirst++;
 				csvResults.add(result);
 			}
-
 			case AMOUNT_MISMATCH -> {
 				mismatchedCount++;
-
 				Transaction existing = result.getFile1Transaction();
 				BigDecimal file2Amount = new BigDecimal(result.getOriginalRecord().getAmount());
-
 				existing.setAmount(file2Amount);
 				existing.setUpdatedAt(LocalDateTime.now());
-
 				transactionsToUpdate.add(existing);
 				csvResults.add(result);
 			}
-
 			case MATCHED -> matchedCount++;
 			}
 		}

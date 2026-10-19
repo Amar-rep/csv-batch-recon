@@ -25,87 +25,52 @@ import com.example.batch.service.FileValidationTasklet;
 public class BatchConfig {
 
 	@Bean
-	public Step validateInputFileStep(
-	        JobRepository jobRepository,
-	        PlatformTransactionManager transactionManager,
-	        @Qualifier("file1ValidationTasklet")
-	        FileValidationTasklet tasklet) {
+	public Step validateInputFileStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+			@Qualifier("file1ValidationTasklet") FileValidationTasklet tasklet) {
+		return new StepBuilder("validateInputFileStep", jobRepository).tasklet(tasklet, transactionManager)
+				.allowStartIfComplete(true).build();
+	}
 
-	    return new StepBuilder("validateInputFileStep", jobRepository)
-	            .tasklet(tasklet, transactionManager)
-	            .allowStartIfComplete(true)
-	            .build();
-	} 
-	  @Bean
-	  public Step validateFile2Step(
-	          JobRepository jobRepository,
-	          PlatformTransactionManager transactionManager,
-	          @Qualifier("file2ValidationTasklet")
-	          FileValidationTasklet tasklet) {
+	@Bean
+	public Step validateFile2Step(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+			@Qualifier("file2ValidationTasklet") FileValidationTasklet tasklet) {
+		return new StepBuilder("validateFile2Step", jobRepository).tasklet(tasklet, transactionManager)
+				.allowStartIfComplete(true).build();
+	}
 
-	      return new StepBuilder("validateFile2Step", jobRepository)
-	              .tasklet(tasklet, transactionManager)
-	              .allowStartIfComplete(true)
-	              .build();
-	  }
-	
 	@Bean
 	public Step importTransactionsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
 			@Qualifier("file1Reader") FlatFileItemReader<TransactionData> csvReader,
 			@Qualifier("asyncTransactionProcessor") AsyncItemProcessor<TransactionData, TransactionProcessingResult> asyncTransactionProcessor,
 			@Qualifier("asyncTransactionWriter") AsyncItemWriter<TransactionProcessingResult> asyncTransactionWriter) {
 		return new StepBuilder("importTransactionsStep", jobRepository)
-				.<TransactionData, Future<TransactionProcessingResult>>chunk(1000,transactionManager)
-				.reader(csvReader)
-				.processor(asyncTransactionProcessor)
-				.writer(asyncTransactionWriter)
-				.build();
-		
-	}
-	
-	@Bean
-	public Step reconcileTransactionsStep(
-	        JobRepository jobRepository,
-	        PlatformTransactionManager transactionManager,
-	        @Qualifier("file2Reader")
-	        FlatFileItemReader<TransactionData> csvReader,
-	        @Qualifier("asyncReconciliationProcessor")
-	        AsyncItemProcessor<TransactionData, ReconciliationResult> asyncReconciliationProcessor,
-	        @Qualifier("asyncReconciliationWriter")
-	        AsyncItemWriter<ReconciliationResult> asyncReconciliationWriter) {
-
-	    return new StepBuilder("reconcileTransactionsStep", jobRepository)
-	            .<TransactionData, Future<ReconciliationResult>>chunk(
-	                    1000, transactionManager)
-	            .reader(csvReader)
-	            .processor(asyncReconciliationProcessor)
-	            .writer(asyncReconciliationWriter)
-	            .build();
+				.<TransactionData, Future<TransactionProcessingResult>>chunk(1000, transactionManager).reader(csvReader)
+				.processor(asyncTransactionProcessor).writer(asyncTransactionWriter).build();
 	}
 
 	@Bean
-	public Job TransactionReconJob(
-	        JobRepository jobRepository,
-	        ReconciliationJobListener listener,
-	        @Qualifier("validateInputFileStep") Step validateInputFileStep,
-	        @Qualifier("importTransactionsStep") Step importTransactionsStep,
-	        @Qualifier("validateFile2Step") Step validateFile2Step,
-	        @Qualifier("reconcileTransactionsStep") Step reconcileTransactionsStep) {
+	public Step reconcileTransactionsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+			@Qualifier("file2Reader") FlatFileItemReader<TransactionData> csvReader,
+			@Qualifier("asyncReconciliationProcessor") AsyncItemProcessor<TransactionData, ReconciliationResult> asyncReconciliationProcessor,
+			@Qualifier("asyncReconciliationWriter") AsyncItemWriter<ReconciliationResult> asyncReconciliationWriter) {
 
-	    return new JobBuilder("TransactionReconJob", jobRepository)
-	    		.listener(listener)
-	            .start(validateInputFileStep)
-	                .on("VALIDATION_FAILED").fail()
-	            .from(validateInputFileStep)
-	                .on("COMPLETED").to(importTransactionsStep)
-	            .from(importTransactionsStep)
-	                .on("COMPLETED").to(validateFile2Step)
-	            .from(validateFile2Step)
-	                .on("VALIDATION_FAILED").fail()
-	            .from(validateFile2Step)
-	                .on("COMPLETED").to(reconcileTransactionsStep)
-	            .end()
-	            .build();
+		return new StepBuilder("reconcileTransactionsStep", jobRepository)
+				.<TransactionData, Future<ReconciliationResult>>chunk(1000, transactionManager).reader(csvReader)
+				.processor(asyncReconciliationProcessor).writer(asyncReconciliationWriter).build();
+	}
+
+	@Bean
+	public Job TransactionReconJob(JobRepository jobRepository, ReconciliationJobListener listener,
+			@Qualifier("validateInputFileStep") Step validateInputFileStep,
+			@Qualifier("importTransactionsStep") Step importTransactionsStep,
+			@Qualifier("validateFile2Step") Step validateFile2Step,
+			@Qualifier("reconcileTransactionsStep") Step reconcileTransactionsStep) {
+
+		return new JobBuilder("TransactionReconJob", jobRepository).listener(listener).start(validateInputFileStep)
+				.on("VALIDATION_FAILED").fail().from(validateInputFileStep).on("COMPLETED").to(importTransactionsStep)
+				.from(importTransactionsStep).on("COMPLETED").to(validateFile2Step).from(validateFile2Step)
+				.on("VALIDATION_FAILED").fail().from(validateFile2Step).on("COMPLETED").to(reconcileTransactionsStep)
+				.end().build();
 	}
 
 }

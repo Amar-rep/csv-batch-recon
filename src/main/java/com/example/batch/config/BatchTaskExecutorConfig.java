@@ -14,7 +14,6 @@ public class BatchTaskExecutorConfig {
 		executor.setCorePoolSize(8);
 		executor.setMaxPoolSize(8);
 		executor.setQueueCapacity(1000);
-		executor.setThreadNamePrefix("batch-processor-");
 		executor.setWaitForTasksToCompleteOnShutdown(true);
 		executor.initialize();
 		return executor;

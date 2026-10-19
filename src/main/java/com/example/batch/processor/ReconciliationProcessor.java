@@ -30,32 +30,21 @@ public class ReconciliationProcessor implements ItemProcessor<TransactionData, R
 	public ReconciliationResult process(TransactionData data) {
 
 		String validationError = validate(data);
-
-		/*
-		 * if(data.getTransactionId().equals("TXN007251")) { throw new
-		 * RuntimeException(); }
-		 */
-
 		if (validationError != null) {
 			return new ReconciliationResult(data, ReconciliationStatus.INVALID, validationError, null);
 		}
-
 		Transaction existing = transactionRepository.findByRunIdAndTransactionId(runId, data.getTransactionId())
 				.orElse(null);
-
 		if (existing == null) {
 			return new ReconciliationResult(data, ReconciliationStatus.MISSING, "Transaction not found in File 1",
 					null);
 		}
-
 		BigDecimal file2Amount = new BigDecimal(data.getAmount());
 
 		if (existing.getAmount().compareTo(file2Amount) != 0) {
-
 			return new ReconciliationResult(data, ReconciliationStatus.AMOUNT_MISMATCH,
 					" File 1: " + existing.getAmount() + "  File 2: " + file2Amount, existing);
 		}
-
 		return new ReconciliationResult(data, ReconciliationStatus.MATCHED, null, existing);
 	}
 

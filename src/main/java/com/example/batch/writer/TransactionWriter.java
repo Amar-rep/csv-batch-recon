@@ -9,21 +9,19 @@ import org.springframework.stereotype.Service;
 import com.example.batch.dto.TransactionProcessingResult;
 import com.example.batch.service.TransactionWriterService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @StepScope
+@RequiredArgsConstructor
 @Slf4j
 public class TransactionWriter implements ItemWriter<TransactionProcessingResult> {
 
-	
 	private final TransactionWriterService transactionWriterService;
 	@Value("#{stepExecution.jobExecution.jobInstance.id}")
 	private Long runId;
 
-	public TransactionWriter(TransactionWriterService writerService) {
-		this.transactionWriterService=writerService;
-	}
 	@Override
 	public void write(Chunk<? extends TransactionProcessingResult> chunk) {
 		transactionWriterService.write(runId, chunk.getItems());

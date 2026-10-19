@@ -40,6 +40,7 @@ public class TransactionWriterService {
 		List<Transaction> transactionsToInsert = new ArrayList<>();
 		Long invalidCount = 0L;
 		Long duplicateCount = 0L;
+
 		for (TransactionProcessingResult result : chunkList) {
 			if (result.getValidationStatus() == RecordValidationStatus.INVALID) {
 				invalidCount++;
@@ -54,7 +55,6 @@ public class TransactionWriterService {
 			}
 			validTransactionsList.add(result);
 		}
-
 		Set<String> duplicatesSet = seenIdSet.isEmpty() ? new HashSet<>()
 				: transactionRepository.findExistingTransactionIds(runId, seenIdSet);
 
@@ -68,7 +68,6 @@ public class TransactionWriterService {
 				duplicateCount++;
 				continue;
 			}
-
 			transactionsToInsert.add(createTransaction(data, runId));
 		}
 		// transaction writing
@@ -93,9 +92,7 @@ public class TransactionWriterService {
 	}
 
 	private Transaction createTransaction(TransactionData data, Long runId) {
-
 		LocalDateTime now = LocalDateTime.now();
-
 		Transaction transaction = new Transaction();
 		transaction.setRunId(runId);
 		transaction.setTransactionId(data.getTransactionId());
@@ -108,7 +105,6 @@ public class TransactionWriterService {
 		transaction.setRowNumber(data.getRowNumber());
 		transaction.setCreatedAt(now);
 		transaction.setUpdatedAt(now);
-
 		return transaction;
 	}
 

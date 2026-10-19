@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import com.example.batch.dto.ErrorCsvDto;
 import com.example.batch.dto.ReconciliationResult;
-import com.example.batch.dto.RecordValidationStatus;
 import com.example.batch.dto.TransactionData;
 import com.example.batch.dto.TransactionProcessingResult;
 
@@ -35,29 +34,23 @@ public class TransactionErrorCsvWriter {
 		Files.createDirectories(directory);
 		this.outputPath = directory.resolve("transaction-errors-" + runId + ".csv");
 	}
-
 	public synchronized void write(List<ErrorCsvDto> records, Long runId) throws IOException {
 
 		if (records.isEmpty()) {
 			return;
 		}
-
 		Files.createDirectories(outputPath.getParent());
-
 		boolean writeHeader = !Files.exists(outputPath) || Files.size(outputPath) == 0;
 
 		try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardOpenOption.CREATE,
 				StandardOpenOption.APPEND); CSVPrinter printer = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
-
 			if (writeHeader) {
 				printer.printRecord("row_number", "run_id", "job_executionId", "transaction_id", "account_number",
 						"transaction_date", "amount", "currency", "status", "error_message");
 			}
-
 			for (ErrorCsvDto result : records) {
 				TransactionData data = result.getData();
-
-				printer.printRecord(data == null ? null : data.getRowNumber(), runId == null ? null : runId,
+				printer.printRecord(data == null ? null : data.getRowNumber(),  runId,
 						jobExecutionId, data == null ? null : data.getTransactionId(),
 						data == null ? null : data.getAccountNumber(), data == null ? null : data.getTransactionDate(),
 						data == null ? null : data.getAmount(), data == null ? null : data.getCurrency(),
@@ -66,23 +59,20 @@ public class TransactionErrorCsvWriter {
 		}
 	}
 
-	public synchronized void writeReconciliationErrors(List<ReconciliationResult> records, Long runId)
+	public  void writeReconciliationErrors(List<ReconciliationResult> records, Long runId)
 			throws IOException {
 		List<ErrorCsvDto> results = new ArrayList<>();
-
 		for (ReconciliationResult record : records) {
 			ErrorCsvDto result = new ErrorCsvDto();
 			result.setMessage(record.getReason());
 			result.setData(record.getOriginalRecord());
 			result.setStatus(record.getStatus().name());
 			results.add(result);
-
 		}
 		write(results, runId);
-
 	}
 
-	public synchronized void writeTransactionErrors(List<TransactionProcessingResult> records, Long runId)
+	public  void writeTransactionErrors(List<TransactionProcessingResult> records, Long runId)
 			throws IOException {
 		List<ErrorCsvDto> results = new ArrayList<>();
 		for (TransactionProcessingResult record : records) {
@@ -91,10 +81,7 @@ public class TransactionErrorCsvWriter {
 			result.setData(record.getTransactionData());
 			result.setStatus(record.getValidationStatus().name());
 			results.add(result);
-
 		}
 		write(results, runId);
-
 	}
-
 }

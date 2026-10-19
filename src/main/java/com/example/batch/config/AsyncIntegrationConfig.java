@@ -18,9 +18,9 @@ import com.example.batch.writer.TransactionWriter;
 @Configuration
 public class AsyncIntegrationConfig {
 	@Bean
-	public AsyncItemProcessor<TransactionData, TransactionProcessingResult> asyncTransactionProcessor(TransactionProcessor transactionProcessor,
-			@Qualifier("batchTaskExecutor") TaskExecutor batchTaskExecutor) {
-		
+	public AsyncItemProcessor<TransactionData, TransactionProcessingResult> asyncTransactionProcessor(
+			TransactionProcessor transactionProcessor, @Qualifier("batchTaskExecutor") TaskExecutor batchTaskExecutor) {
+
 		AsyncItemProcessor<TransactionData, TransactionProcessingResult> processor = new AsyncItemProcessor<>();
 		processor.setDelegate(transactionProcessor);
 		processor.setTaskExecutor(batchTaskExecutor);
@@ -28,34 +28,29 @@ public class AsyncIntegrationConfig {
 	}
 
 	@Bean
-	public AsyncItemWriter<TransactionProcessingResult> asyncTransactionWriter( TransactionWriter transactionWriter) {
+	public AsyncItemWriter<TransactionProcessingResult> asyncTransactionWriter(TransactionWriter transactionWriter) {
 		AsyncItemWriter<TransactionProcessingResult> writer = new AsyncItemWriter<>();
 		writer.setDelegate(transactionWriter);
 		return writer;
 	}
+
 	@Bean
-	public AsyncItemProcessor<TransactionData, ReconciliationResult>
-	        asyncReconciliationProcessor(
-	                ReconciliationProcessor reconciliationProcessor,
-	                @Qualifier("batchTaskExecutor")
-	                TaskExecutor batchTaskExecutor) {
-
-	    AsyncItemProcessor<TransactionData, ReconciliationResult> processor =
-	            new AsyncItemProcessor<>();
-
-	    processor.setDelegate(reconciliationProcessor);
-	    processor.setTaskExecutor(batchTaskExecutor);
-
-	    return processor;
+	public AsyncItemProcessor<TransactionData, ReconciliationResult> asyncReconciliationProcessor(
+			ReconciliationProcessor reconciliationProcessor,
+			@Qualifier("batchTaskExecutor") TaskExecutor batchTaskExecutor) {
+		AsyncItemProcessor<TransactionData, ReconciliationResult> processor = new AsyncItemProcessor<>();
+		processor.setDelegate(reconciliationProcessor);
+		processor.setTaskExecutor(batchTaskExecutor);
+		return processor;
 	}
+
 	@Bean
 	public AsyncItemWriter<ReconciliationResult> asyncReconciliationWriter(
-	        @Qualifier("reconciliationWriter")
-	        ItemWriter<ReconciliationResult> reconciliationWriter) {
+			@Qualifier("reconciliationWriter") ItemWriter<ReconciliationResult> reconciliationWriter) {
 
-	    AsyncItemWriter<ReconciliationResult> writer = new AsyncItemWriter<>();
-	    writer.setDelegate(reconciliationWriter);
-	    return writer;
+		AsyncItemWriter<ReconciliationResult> writer = new AsyncItemWriter<>();
+		writer.setDelegate(reconciliationWriter);
+		return writer;
 	}
 
 }

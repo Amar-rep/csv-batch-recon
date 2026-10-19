@@ -29,11 +29,11 @@ public class TransactionProcessor implements ItemProcessor<TransactionData, Tran
 		transaction.setCurrency(trim(transaction.getCurrency()));
 		transaction.setTransactionType(trim(transaction.getTransactionType()));
 		transaction.setDescription(trim(transaction.getDescription()));
-	/*	if(transaction.getTransactionId().equals("TXN007115")) {
-			throw new RuntimeException();
-		}
-		*/
-	
+		/*
+		 * if(transaction.getTransactionId().equals("TXN007115")) { throw new
+		 * RuntimeException(); }
+		 */
+
 		if (!isValidTransactionId(transaction.getTransactionId())) {
 			return invalid(transaction, "Invalid transaction ID");
 		}
@@ -73,7 +73,6 @@ public class TransactionProcessor implements ItemProcessor<TransactionData, Tran
 		if (transactionDate == null || transactionDate.isBlank()) {
 			return false;
 		}
-
 		try {
 			LocalDate.parse(transactionDate);
 			return true;

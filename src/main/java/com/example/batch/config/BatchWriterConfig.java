@@ -25,8 +25,8 @@ public class BatchWriterConfig {
 
 	@Bean
 	public JdbcBatchItemWriter<Transaction> transactionBatchItemWriter(DataSource dataSource) {
-		return new JdbcBatchItemWriterBuilder<Transaction>().dataSource(dataSource).sql(INSERT_TRANSACTION_SQL).beanMapped()
-				.assertUpdates(true).build();
+		return new JdbcBatchItemWriterBuilder<Transaction>().dataSource(dataSource).sql(INSERT_TRANSACTION_SQL)
+				.beanMapped().assertUpdates(true).build();
 	}
 
 }

@@ -12,27 +12,20 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.util.unit.DataSize;
 
 public class FileValidationTasklet implements Tasklet {
 
 	private static final String HEADER = "transaction_id,account_number,transaction_date,amount,currency,transaction_type,description";
-	
+
 	private String filePath;
 
-
 	private DataSize maxFileSize;
-	
-	  public FileValidationTasklet(String filePath, DataSize maxFileSize) {
-	        this.filePath = filePath;
-	        this.maxFileSize = maxFileSize;
-	    }
-	
-	
-	
-	
+
+	public FileValidationTasklet(String filePath, DataSize maxFileSize) {
+		this.filePath = filePath;
+		this.maxFileSize = maxFileSize;
+	}
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {

@@ -1,6 +1,5 @@
 package com.example.batch.listener;
 
-
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
@@ -13,12 +12,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReconciliationJobListener implements JobExecutionListener {
 
-    private final ReconciliationAuditService auditService;
+	private final ReconciliationAuditService auditService;
 
-    @Override
-    public void beforeJob(JobExecution jobExecution) {
-        Long runId = jobExecution.getJobInstance().getInstanceId();
-
-        auditService.initialize(runId);
-    }
+	@Override
+	public void beforeJob(JobExecution jobExecution) {
+		Long runId = jobExecution.getJobInstance().getInstanceId();
+		auditService.initialize(runId);
+	}
 }
